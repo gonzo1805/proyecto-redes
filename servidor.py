@@ -38,11 +38,29 @@ while True:
         ip = input("Ingrese la dirección IP del nuevo vecino\n")
         ip = ip.split(".")
         for i in range(0,4):
-            ip[i] = bin(int(ip[i]))[2:]
-        print(ip)
+            ip[i] = hex(int(ip[i]))[2:]
+            if len(ip[i]) == 1:
+                ip[i] = "0"+ip[i]
         ip = ''.join(ip)
         ip.encode()
         print(ip)
+        mascara = input("Ingrese la máscara del nuevo vecino\n")
+        mascara = mascara.split(".")
+        for i in range(0,4):
+            mascara[i] = hex(int(mascara[i]))[2:]
+            if len(mascara[i]) == 1:
+                mascara[i] = "0"+mascara[i]
+        mascara = ''.join(mascara)
+        mascara.encode()
+        print(mascara)
+        sa = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
+        sa = hex(int(sa))[2:]
+        l = len(sa)
+        l = 4-l
+        for i in range(0,l):
+            sa = "0"+sa
+        sa.encode()
+        print(sa)
         input("pulsa una tecla para continuar")
     elif opcionMenu=="2":
         print ("")
