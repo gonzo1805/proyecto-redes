@@ -73,9 +73,36 @@ while True:
         vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
         input("Se agregó con éxito el vecino: "+str(ip)+"\npulsa una tecla para continuar\n")
     elif opcionMenu=="2":
-        print ("")
-        input("Has pulsado la opción 2...\npulsa una tecla para continuar")
-        escribeArchivo("gato")
+        print("")
+        ip = input("Ingrese la dirección IP del vecino a desconectar\n")
+        ip = ip.split(".")
+        for i in range(0, 4):
+            ip[i] = hex(int(ip[i]))[2:]
+            if len(ip[i]) == 1:
+                ip[i] = "0" + ip[i]
+        ip = ''.join(ip)
+        ip.encode()
+        print(ip)
+        mascara = input("Ingrese la máscara del nuevo vecino\n")
+        mascara = mascara.split(".")
+        for i in range(0, 4):
+            mascara[i] = hex(int(mascara[i]))[2:]
+            if len(mascara[i]) == 1:
+                mascara[i] = "0" + mascara[i]
+        mascara = ''.join(mascara)
+        mascara.encode()
+        print(mascara)
+        sa = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
+        sa = hex(int(sa))[2:]
+        l = len(sa)
+        l = 4 - l
+        # buscar en la tabla vecinos
+        if ip in vecinos:
+            vecino = vecinos[ip]
+            if vecino['mascara'] == mascara and vecino['sa'] == sa:
+                vecino['tipo'] = b"00"
+                print("se desconectó el vecino", ip)
+        input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
         print ("")
         input("Has pulsado la opción 3...\npulsa una tecla para continuar")
