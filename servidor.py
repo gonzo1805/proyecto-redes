@@ -21,11 +21,8 @@ def escribeArchivo(aEscribir):
         file = open("Bitacora.txt", "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
-
-
-
 def menu():
-    os.system('clear') # NOTA para windows tienes que cambiar clear por cls
+    os.system('clear') # NOTA para windows cambiar clear por cls
     print ("Seleccione una opción")
     print ("\t1 - Enviar solicitud de vecino")
     print ("\t2 - Solicitar desconexión")
@@ -41,7 +38,10 @@ while True:
         ip = input("Ingrese la dirección IP del nuevo vecino\n")
         ip = ip.split(".")
         for i in range(0,4):
-            ip[i] = bin(int(ip[i]))
+            ip[i] = bin(int(ip[i]))[2:]
+        print(ip)
+        ip = ''.join(ip)
+        ip.encode()
         print(ip)
         input("pulsa una tecla para continuar")
     elif opcionMenu=="2":
@@ -79,16 +79,16 @@ while True:
             sc, addr = s.accept()
             recibido = sc.recv(1024)
             # se verifica si el tamaña del paquete es de una solicitud
-            if len(recibido) == 88:
+            if len(recibido) == 22:
                 #Se divide el paquete en sus respectivas partes
-                tipo = recibido[0:8] #tipo de solicitud
-                sa = recibido[8:24] #sistema autonomo
-                ip = recibido[24:56]
-                mascara = recibido[56:88]
-                if tipo == b"00000001":
+                tipo = recibido[0:2] #tipo de solicitud
+                sa = recibido[2:6] #sistema autonomo
+                ip = recibido[6:14]
+                mascara = recibido[14:22]
+                if tipo == b"01":
                     print("se ingresó una solicitud de conexión")
                     #se envía mensaje de aceptación
-                    respuesta = b"00000010"
+                    respuesta = b"02"
                     respuesta += sa
                     respuesta += ip
                     respuesta += mascara
@@ -98,15 +98,15 @@ while True:
                     #el tipo re refiere a si está conectado o no
                     vecinos = {ip:{'tipo': tipo,'mascara': mascara,'sa': sa}}
                     print("se agregó con éxito el vecino: ",ip)
-                elif tipo == b"00000002":
+                elif tipo == b"02":
                     print("Solicitud de vecino aceptada")
-                elif tipo == b"00000003":
+                elif tipo == b"03":
                     print("se ingresó una solicitud de desconexión")
                     #buscar en la tabla vecinos
                     if ip in vecinos:
                         vecino = vecinos[ip]
                         if vecino['mascara'] == mascara and vecino['sa'] == sa:
-                            vecino['tipo'] = b"00000000"
+                            vecino['tipo'] = b"00"
                             print("se desconectó el vecino", ip)
                     else:
                         print("no existe un vecino con esa ip")
@@ -123,4 +123,3 @@ while True:
         input("No has pulsado ninguna opción correcta...\npulsa una tecla para continuar")
 
 print ("Fin")
-

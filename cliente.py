@@ -15,10 +15,10 @@ s.connect(("localhost", 57809))
 
 #Creamos un bucle para retener la conexion
 
-paquete = b"00000001" #solicitud de conexión
-paquete+= b"0000000000000010" #sistema autonomo
-paquete+= b"00000000000000100000000000000010" #IP
-paquete+= b"11111111111111111111111100000000" #mascara
+paquete = b"01" #solicitud de conexión
+paquete+= b"0002" #sistema autonomo
+paquete+= b"00020002" #IP
+paquete+= b"FFFFFF00" #mascara
 
 #Con la instancia del objeto servidor (s) y el metodo send, enviamos el mensaje introducido
 #s.send(mensaje)
@@ -28,10 +28,10 @@ time.sleep(2)
 s = socket.socket()
 s.connect(("localhost", 57809))
 #se crea un paquete con solicitud de desconexion
-paquete = b"00000003" #solicitud de conexión
-paquete+= b"0000000000000010" #sistema autonomo
-paquete+= b"00000000000000100000000000000010" #IP
-paquete+= b"11111111111111111111111100000000" #mascara
+paquete = b"03" #solicitud de conexión
+paquete+= b"0002" #sistema autonomo
+paquete+= b"00020002" #IP
+paquete+= b"FFFFFF00" #mascara
 s.send(paquete)
 
 #Cerramos la instancia del objeto servidor
