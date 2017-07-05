@@ -6,6 +6,7 @@ import os
 import os.path
 from _datetime import datetime
 run = 0
+vecinos = {}
 
 def escribeArchivo(aEscribir):
     ## Si no es la primera escritura del run, solo escribe en la bitacora
@@ -37,12 +38,12 @@ while True:
         print ("")
         ip = input("Ingrese la dirección IP del nuevo vecino\n")
         ip = ip.split(".")
-        for i in range(0,4):
+        for i in range(0,len(ip)):
             ip[i] = hex(int(ip[i]))[2:]
             if len(ip[i]) == 1:
                 ip[i] = "0"+ip[i]
         ip = ''.join(ip)
-        ip.encode()
+        ip = ip.encode()
         print(ip)
         mascara = input("Ingrese la máscara del nuevo vecino\n")
         mascara = mascara.split(".")
@@ -51,7 +52,7 @@ while True:
             if len(mascara[i]) == 1:
                 mascara[i] = "0"+mascara[i]
         mascara = ''.join(mascara)
-        mascara.encode()
+        mascara = mascara.encode()
         print(mascara)
         sa = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
         sa = hex(int(sa))[2:]
@@ -59,9 +60,18 @@ while True:
         l = 4-l
         for i in range(0,l):
             sa = "0"+sa
-        sa.encode()
+        sa = sa.encode()
         print(sa)
-        input("pulsa una tecla para continuar")
+        solicitud = b"01"
+        solicitud += sa
+        solicitud += ip
+        solicitud += mascara
+        #solicitud.encode()
+        print(solicitud)
+        print("falta enviar mensaje de solicitud (se hace con los hilos)")
+        estado = b"01"
+        vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
+        input("Se agregó con éxito el vecino: "+str(ip)+"\npulsa una tecla para continuar\n")
     elif opcionMenu=="2":
         print ("")
         input("Has pulsado la opción 2...\npulsa una tecla para continuar")
@@ -86,7 +96,6 @@ while True:
         #sc, addr = s.accept()
 
         #creación de tabla vecinos
-        vecinos = {}
         alcanzabilidad = {}
 
         while True:
@@ -114,7 +123,7 @@ while True:
                     print("se envió respuesta de aceptación")
                     #se ingresa en la tabla vecinos,
                     #el tipo re refiere a si está conectado o no
-                    vecinos = {ip:{'tipo': tipo,'mascara': mascara,'sa': sa}}
+                    vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
                     print("se agregó con éxito el vecino: ",ip)
                 elif tipo == b"02":
                     print("Solicitud de vecino aceptada")
