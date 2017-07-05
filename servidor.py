@@ -3,6 +3,26 @@
 #importamos el modulo socket
 import socket
 import os
+import os.path
+from _datetime import datetime
+run = 0
+
+def escribeArchivo(aEscribir):
+    ## Si no es la primera escritura del run, solo escribe en la bitacora
+    if (run == 1):
+        file = open("Bitacora.txt", "a")
+        file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
+    ## Si es la primera escritura del run, borra la bitacora vieja y crea una nueva
+    elif (run == 0):
+        if (os.path.isfile("Bitacora.txt")):
+            os.remove("Bitacora.txt")
+        global run
+        run = 1
+        file = open("Bitacora.txt", "a")
+        file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
+
+
+
 
 def menu():
     os.system('clear') # NOTA para windows tienes que cambiar clear por cls
@@ -27,6 +47,7 @@ while True:
     elif opcionMenu=="2":
         print ("")
         input("Has pulsado la opción 2...\npulsa una tecla para continuar")
+        escribeArchivo("gato")
     elif opcionMenu=="3":
         print ("")
         input("Has pulsado la opción 3...\npulsa una tecla para continuar")
@@ -102,3 +123,4 @@ while True:
         input("No has pulsado ninguna opción correcta...\npulsa una tecla para continuar")
 
 print ("Fin")
+
