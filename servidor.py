@@ -20,7 +20,7 @@ def escribeArchivo(aEscribir):
     elif (run == 0):
         if (os.path.isfile("Bitacora.txt")):
             os.remove("Bitacora.txt")
-
+        global run
         run = 1
         file = open("Bitacora.txt", "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
