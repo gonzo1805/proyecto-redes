@@ -69,6 +69,7 @@ def escucha():
                 #se ingresa en la tabla vecinos,
                 #el tipo re refiere a si está conectado o no
                 vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
+                escribeArchivo("Se agregó el vecino: "+str(ip))
                 print("se agregó con éxito el vecino: ",ip)
             elif tipo == b"02":
                 print("Solicitud de vecino aceptada")
@@ -79,6 +80,7 @@ def escucha():
                     vecino = vecinos[ip]
                     if vecino['mascara'] == mascara and vecino['sa'] == sa:
                         vecino['tipo'] = b"00"
+                        escribeArchivo("Se desconectó el vecino: "+str(ip))
                         print("se desconectó el vecino", ip)
                 else:
                     print("no existe un vecino con esa ip")
@@ -142,6 +144,7 @@ while True:
         print("falta enviar mensaje de solicitud (se hace con los hilos)")
         estado = b"01"
         vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
+        escribeArchivo("Se agregó el vecino: "+str(ip))
         input("Se agregó con éxito el vecino: "+str(ip)+"\npulsa una tecla para continuar\n")
     elif opcionMenu=="2":
         print("")
@@ -176,6 +179,7 @@ while True:
             vecino = vecinos[ip]
             if vecino['mascara'] == mascara and vecino['sa'] == sa:
                 vecinos[ip]['estado'] = b"00"
+                escribeArchivo("Se desconectó el vecino: "+str(ip))
                 print("se desconectó el vecino", ip)
         input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
@@ -192,5 +196,4 @@ while True:
     else:
         print ("")
         input("No has pulsado ninguna opción correcta...\npulsa una tecla para continuar")
-
 print ("Fin")
