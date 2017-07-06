@@ -73,22 +73,30 @@ def escucha():
             else:
                 print("Paquete con solicitud no reconocida")
             print("tabla vecinos: ",vecinos)
-        #else:
+        else:
+            print("Rec: ", recibido)
             #Se divide el paquete
-            #tipo = recibido[0:2]
-            #sa = recibido[2:6]
-            #ip = recibido[6:14]
-            #tam = int(recibido[14:22])
-            #alcanzabilidad[ip] = {'tipo' : tipo, 'sa' : sa, 'Alcanzables': tam}
-            #num = 0
-            #alcanzables = alcanzabilidad[ip]
-            #for i in range (0, (i+16)*int(tam)):
-            #    alcanzables[str(num)] = recibido[i:i+16]
-            #print("tabla alcanzabilidad: ", alcanzabilidad)
+            tipo = recibido[0:2]
+            sa = recibido[2:6]
+            ip = recibido[6:14]
+            tam = recibido[14:22]
+            alcanzabilidad[ip] = {'tipo' : tipo, 'sa' : sa, 'Alcanzables': tam}
+            num = 0
+            alcanzables = alcanzabilidad[ip]
+            for i in range (0, int(tam)):
+                alcanzables['alcanzable' + str(num)] = recibido[22+(16*i):22+(16*i)+8]
+                alcanzables['mascara' + str(num)] = recibido[22+(16*i)+8:22+(16*i)+16]
+                num += 1
+            num = 22+(16*(int(tam)-1))+16
+            print("num", num)
+            alcanzables['SAs'] = recibido[num:num+4]
+            alcanzables['SA0'] = recibido[num+4:num+8]
+            print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
 
 listener = threading.Thread(target=escucha, name = 'router')
+listener.start()
 
 def menu():
     os.system('clear') 
@@ -96,8 +104,6 @@ def menu():
     print ("\t1 - Enviar solicitud de vecino")
     print ("\t2 - Solicitar desconexión")
     print ("\t3 - Enviar información de alcanzabilidad")
-    if not escuchando:
-        print ("\t4 - Comenzar recepción de mensajes")
     print ("\t9 - salir")
 
 while True:
@@ -181,12 +187,6 @@ while True:
     elif opcionMenu=="3":
         print ("")
         input("Ha pulsado la opción 3...\npulse una tecla para continuar")
-    elif opcionMenu=="4":
-        if escuchando:
-            input("No ha pulsado ninguna opción correcta...\npulse una tecla para continuar")
-        else:
-            escuchando = True
-            listener.start()
     elif opcionMenu=="9":
         break
     else:

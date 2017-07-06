@@ -19,7 +19,7 @@ s.send(paquete)
 time.sleep(2)
 s = socket.socket()
 s.connect(("localhost", 57809))
-paquete+= b"02" #Intercambio de información
+paquete= b"02" #Intercambio de información
 paquete+= b"0002" #Sistema autónomo
 paquete+= b"00020002" #Dirección IP
 paquete+= b"00000005" #Cantidad de destinos
