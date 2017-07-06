@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-#importamos el modulo socket
 import socket
 import os
 import os.path
@@ -26,31 +25,18 @@ def escribeArchivo(aEscribir):
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
 def escucha():
-    #instanciamos un objeto para trabajar con el socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    #Con el metodo bind le indicamos que puerto debe escuchar y de que servidor esperar conexiones
-    #Es mejor dejarlo en blanco para recibir conexiones externas si es nuestro caso
     s.bind(("", 57809))
-
-    #Aceptamos conexiones entrantes con el metodo listen, y ademas aplicamos como parametro
-    #El numero de conexiones entrantes que vamos a aceptar
     s.listen(1)
 
-    #Instanciamos un objeto sc (socket cliente) para recibir datos, al recibir datos este
-    #devolvera tambien un objeto que representa una tupla con los datos de conexion: IP y puerto
-    #sc, addr = s.accept()
-
-    #creación de tabla vecinos
+    #creación de tabla alcanzabilidad
     alcanzabilidad = {}
     while True:
-        #Recibimos el mensaje, con el metodo recv recibimos datos y como parametro
-        #la cantidad de bytes para recibir
         print("")
         print ("Esperando mensaje...")
         sc, addr = s.accept()
         recibido = sc.recv(1024)
-        # se verifica si el tamaña del paquete es de una solicitud
+        # se verifica si el tamaño del paquete es de una solicitud
         if len(recibido) == 22:
             #Se divide el paquete en sus respectivas partes
             tipo = recibido[0:2] #tipo de solicitud
@@ -86,15 +72,26 @@ def escucha():
                     print("no existe un vecino con esa ip")
             else:
                 print("Paquete con solicitud no reconocida")
-        print("tabla vecinos: ",vecinos)
-        #Cerramos la instancia del socket cliente y servidor
+            print("tabla vecinos: ",vecinos)
+        #else:
+            #Se divide el paquete
+            #tipo = recibido[0:2]
+            #sa = recibido[2:6]
+            #ip = recibido[6:14]
+            #tam = int(recibido[14:22])
+            #alcanzabilidad[ip] = {'tipo' : tipo, 'sa' : sa, 'Alcanzables': tam}
+            #num = 0
+            #alcanzables = alcanzabilidad[ip]
+            #for i in range (0, (i+16)*int(tam)):
+            #    alcanzables[str(num)] = recibido[i:i+16]
+            #print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
 
 listener = threading.Thread(target=escucha, name = 'router')
 
 def menu():
-    os.system('clear') # NOTA para windows cambiar clear por cls
+    os.system('clear') 
     print ("Seleccione una opción")
     print ("\t1 - Enviar solicitud de vecino")
     print ("\t2 - Solicitar desconexión")
@@ -106,7 +103,6 @@ def menu():
 while True:
     menu()
     opcionMenu = input("inserte una opción >> ")
-    #numRouter = input("Digite el número de router desde el cual ejecutar la acción >> ")
     if opcionMenu=="1":
         print ("")
         ip = input("Ingrese la dirección IP del nuevo vecino\n")
@@ -184,10 +180,10 @@ while True:
         input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
         print ("")
-        input("Has pulsado la opción 3...\npulsa una tecla para continuar")
+        input("Ha pulsado la opción 3...\npulse una tecla para continuar")
     elif opcionMenu=="4":
         if escuchando:
-            input("No has pulsado ninguna opción correcta...\npulsa una tecla para continuar")
+            input("No ha pulsado ninguna opción correcta...\npulse una tecla para continuar")
         else:
             escuchando = True
             listener.start()
@@ -195,5 +191,5 @@ while True:
         break
     else:
         print ("")
-        input("No has pulsado ninguna opción correcta...\npulsa una tecla para continuar")
+        input("No ha pulsado ninguna opción correcta...\npulse una tecla para continuar")
 print ("Fin")
