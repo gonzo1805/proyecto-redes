@@ -20,7 +20,7 @@ def escribeArchivo(aEscribir):
     elif (run == 0):
         if (os.path.isfile("Bitacora.txt")):
             os.remove("Bitacora.txt")
-        
+
         run = 1
         file = open("Bitacora.txt", "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
@@ -90,7 +90,7 @@ def escucha():
     s.close()
 
 listener = threading.Thread(target=escucha, name = 'router')
-	
+
 def menu():
     os.system('clear') # NOTA para windows cambiar clear por cls
     print ("Seleccione una opción")
@@ -152,26 +152,30 @@ while True:
             if len(ip[i]) == 1:
                 ip[i] = "0" + ip[i]
         ip = ''.join(ip)
-        ip.encode()
+        ip = ip.encode()
         print(ip)
-        mascara = input("Ingrese la máscara del nuevo vecino\n")
+        mascara = input("Ingrese la máscara del vecino a desconectar\n")
         mascara = mascara.split(".")
         for i in range(0, 4):
             mascara[i] = hex(int(mascara[i]))[2:]
             if len(mascara[i]) == 1:
                 mascara[i] = "0" + mascara[i]
         mascara = ''.join(mascara)
-        mascara.encode()
+        mascara = mascara.encode()
         print(mascara)
-        sa = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
+        sa = input("Ingrese el sistema autonomo al que pertenece el vecino a desconectar\n")
         sa = hex(int(sa))[2:]
         l = len(sa)
         l = 4 - l
+        for i in range(0,l):
+            sa = "0"+sa
+        sa = sa.encode()
+        print(sa)
         # buscar en la tabla vecinos
         if ip in vecinos:
             vecino = vecinos[ip]
             if vecino['mascara'] == mascara and vecino['sa'] == sa:
-                vecino['tipo'] = b"00"
+                vecinos[ip]['estado'] = b"00"
                 print("se desconectó el vecino", ip)
         input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
