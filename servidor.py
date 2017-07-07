@@ -27,17 +27,24 @@ def escribeArchivo(aEscribir):
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
 def confirmacion(paquete,ip):
-    s = socket.socket()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.listen(1)
     s.settimeout(5)
     try:
+        s.bind((ip, 57809)) #si no funciona poner ""
         s.connect((ip, 57809))
         s.send(paquete)
-    except socket.timeout:
-        return 0
+        sc, addr = s.accept()
+        recibido = sc.recv(1024)
     except:
-        raise
+        return 0
     else:
-        return 1
+        tipo = recibido[0:2]
+        s.close()
+        if tipo == b"02" or tipo == b"04":
+            return 1
+        else:
+            return 0
 
 def encode(direccion):
     direccion = direccion.split(".")
@@ -71,9 +78,9 @@ def escucha():
                 print("se ingresó una solicitud de conexión")
                 #se envía mensaje de aceptación
                 respuesta = b"02"
-                respuesta += sa
-                respuesta += ip
-                respuesta += mascara
+                respuesta += encode(SA_HOST)
+                respuesta += encode(IP_HOST)
+                respuesta += encode(MSK_HOST)
                 sc.send(respuesta)
                 print("se envió respuesta de aceptación")
                 #se ingresa en la tabla vecinos,
@@ -91,6 +98,11 @@ def escucha():
                     if vecino['mascara'] == mascara and vecino['sa'] == sa:
                         vecino['tipo'] = b"00"
                         escribeArchivo("Se desconectó el vecino: "+str(ip))
+                        respuesta = b"04"
+                        respuesta += encode(SA_HOST)
+                        respuesta += encode(IP_HOST)
+                        respuesta += encode(MSK_HOST)
+                        sc.send(respuesta)
                         print("se desconectó el vecino", ip)
                 else:
                     print("no existe un vecino con esa ip")
@@ -182,11 +194,22 @@ while True:
         print(sa_hex)
         # buscar en la tabla vecinos
         if ip_hex in vecinos:
+            solicitud = b"04"
+            solicitud += encode(SA_HOST)
+            solicitud += encode(IP_HOST)
+            solicitud += encode(MSK_HOST)
+            if not confirmacion(solicitud,ip_str):
+                input("No se logro establecer conexion con : "+str(ip_str))
             vecino = vecinos[ip_hex]
             if vecino['mascara'] == mask_hex and vecino['sa'] == sa_hex:
                 vecinos[ip_hex]['estado'] = b"00"
                 escribeArchivo("Se desconectó el vecino: "+str(ip_str))
                 print("se desconectó el vecino", ip_str)
+                confirmacion(paquete,ip)
+            else:
+                print("los demas datos sumistrados no corresponden a la ip "+str(ip_str))
+        else:
+            print("No Existe un vecino con la direccion "+str(ip_str))
         input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
         print ("")
