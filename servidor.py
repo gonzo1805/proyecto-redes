@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import socket
 import os
 import os.path
@@ -9,6 +7,10 @@ from _datetime import datetime
 run = 0
 vecinos = {}
 escuchando = False;
+#esto es completamente arbitrario
+IP_HOST = "10.3.19.230"
+MSK_HOST = "255.255.255.0"
+SA_HOST = "2"
 
 def escribeArchivo(aEscribir):
     ## Si no es la primera escritura del run, solo escribe en la bitacora
@@ -24,11 +26,33 @@ def escribeArchivo(aEscribir):
         file = open("Bitacora.txt", "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
+def confirmacion(paquete,ip):
+    s = socket.socket()
+    s.settimeout(5)
+    try:
+        s.connect((ip, 57809))
+        s.send(paquete)
+    except socket.timeout:
+        return 0
+    except:
+        raise
+    else:
+        return 1
+
+def encode(direccion):
+    direccion = direccion.split(".")
+    for i in range(0,len(direccion)):
+        direccion[i] = hex(int(direccion[i]))[2:]
+        if len(direccion[i]) == 1:
+            direccion[i] = "0"+direccion[i]
+    direccion = ''.join(direccion)
+    direccion = direccion.encode()
+    return direccion
+
 def escucha():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(("", 57809))
     s.listen(1)
-
     #creación de tabla alcanzabilidad
     alcanzabilidad = {}
     while True:
@@ -99,7 +123,7 @@ listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
 
 def menu():
-    os.system('clear') 
+    os.system('clear')
     print ("Seleccione una opción")
     print ("\t1 - Enviar solicitud de vecino")
     print ("\t2 - Solicitar desconexión")
@@ -111,78 +135,58 @@ while True:
     opcionMenu = input("inserte una opción >> ")
     if opcionMenu=="1":
         print ("")
-        ip = input("Ingrese la dirección IP del nuevo vecino\n")
-        ip = ip.split(".")
-        for i in range(0,len(ip)):
-            ip[i] = hex(int(ip[i]))[2:]
-            if len(ip[i]) == 1:
-                ip[i] = "0"+ip[i]
-        ip = ''.join(ip)
-        ip = ip.encode()
-        print(ip)
-        mascara = input("Ingrese la máscara del nuevo vecino\n")
-        mascara = mascara.split(".")
-        for i in range(0,4):
-            mascara[i] = hex(int(mascara[i]))[2:]
-            if len(mascara[i]) == 1:
-                mascara[i] = "0"+mascara[i]
-        mascara = ''.join(mascara)
-        mascara = mascara.encode()
-        print(mascara)
-        sa = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
-        sa = hex(int(sa))[2:]
-        l = len(sa)
+        ip_str = input("Ingrese la dirección IP del nuevo vecino\n")
+        ip_hex = encode(ip_str)
+        print(ip_hex)
+        mask_str = input("Ingrese la máscara del nuevo vecino\n")
+        mask_hex = encode(mask_str)
+        print(mask_hex)
+        sa_str = input("Ingrese el sistema autonomo al que pertenece el nuevo vecino\n")
+        sa_hex = hex(int(sa_str))[2:]
+        l = len(sa_hex)
         l = 4-l
         for i in range(0,l):
-            sa = "0"+sa
-        sa = sa.encode()
-        print(sa)
-        solicitud = b"01"
-        solicitud += sa
-        solicitud += ip
-        solicitud += mascara
-        #solicitud.encode()
-        print(solicitud)
-        print("falta enviar mensaje de solicitud (se hace con los hilos)")
-        estado = b"01"
-        vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
-        escribeArchivo("Se agregó el vecino: "+str(ip))
-        input("Se agregó con éxito el vecino: "+str(ip)+"\npulsa una tecla para continuar\n")
+            sa_hex = "0"+sa_hex
+        sa_hex = sa_hex.encode()
+        print(sa_hex)
+        #se verifica que el
+        if ip_hex not in vecinos:
+            solicitud = b"01"
+            solicitud += encode(SA_HOST)
+            solicitud += encode(IP_HOST)
+            solicitud += encode(MSK_HOST)
+            print(solicitud)
+            if confirmacion(solicitud,ip_str):
+                estado = b"01"
+                vecinos[ip] = {'estado': estado,'mascara': mask_hex,'sa': sa_hex}
+                escribeArchivo("Se agregó el vecino: "+str(ip_str))
+                input("Se agregó con éxito el vecino: "+str(ip_str)+"\npulsa una tecla para continuar\n")
+            else:
+                input("No se logro establecer conexion con : "+str(ip_str)+"\npulsa una tecla para continuar\n")
+        else:
+            print("Existe un vecino con esa direccion o fue desconectado anteriormente")
     elif opcionMenu=="2":
         print("")
-        ip = input("Ingrese la dirección IP del vecino a desconectar\n")
-        ip = ip.split(".")
-        for i in range(0, 4):
-            ip[i] = hex(int(ip[i]))[2:]
-            if len(ip[i]) == 1:
-                ip[i] = "0" + ip[i]
-        ip = ''.join(ip)
-        ip = ip.encode()
-        print(ip)
-        mascara = input("Ingrese la máscara del vecino a desconectar\n")
-        mascara = mascara.split(".")
-        for i in range(0, 4):
-            mascara[i] = hex(int(mascara[i]))[2:]
-            if len(mascara[i]) == 1:
-                mascara[i] = "0" + mascara[i]
-        mascara = ''.join(mascara)
-        mascara = mascara.encode()
-        print(mascara)
-        sa = input("Ingrese el sistema autonomo al que pertenece el vecino a desconectar\n")
-        sa = hex(int(sa))[2:]
-        l = len(sa)
-        l = 4 - l
+        ip_str = input("Ingrese la dirección IP del vecino a desconectar\n")
+        ip_hex = encode(ip_str)
+        print(ip_hex)
+        mask_str = input("Ingrese la máscara del vecino a desconectar\n")
+        mask_hex = encode(mask_str)
+        sa_str = input("Ingrese el sistema autonomo al que pertenece el vecino a desconectar\n")
+        sa_hex = hex(int(sa_str))[2:]
+        l = len(sa_hex)
+        l = 4-l
         for i in range(0,l):
-            sa = "0"+sa
-        sa = sa.encode()
-        print(sa)
+            sa_hex = "0"+sa_hex
+        sa_hex = sa_hex.encode()
+        print(sa_hex)
         # buscar en la tabla vecinos
-        if ip in vecinos:
-            vecino = vecinos[ip]
-            if vecino['mascara'] == mascara and vecino['sa'] == sa:
-                vecinos[ip]['estado'] = b"00"
-                escribeArchivo("Se desconectó el vecino: "+str(ip))
-                print("se desconectó el vecino", ip)
+        if ip_hex in vecinos:
+            vecino = vecinos[ip_hex]
+            if vecino['mascara'] == mask_hex and vecino['sa'] == sa_hex:
+                vecinos[ip_hex]['estado'] = b"00"
+                escribeArchivo("Se desconectó el vecino: "+str(ip_str))
+                print("se desconectó el vecino", ip_str)
         input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
         print ("")
