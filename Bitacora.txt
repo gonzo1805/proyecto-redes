@@ -1,2 +1,2 @@
-2017-07-06 22:15:33 Se agregó el vecino: b'00020002'
-2017-07-06 22:15:37 Se desconectó el vecino: b'00020002'
+2017-07-06 22:24:52 Se agregó el vecino: b'00020002'
+2017-07-06 22:24:56 Se desconectó el vecino: b'00020002'
