@@ -275,7 +275,6 @@ while True:
                 vecinos[ip_hex]['estado'] = b"00"
                 escribeArchivo("Se desconectó el vecino: "+str(ip_str))
                 print("se desconectó el vecino", ip_str)
-                confirmacion(paquete,ip)
             else:
                 print("los demas datos sumistrados no corresponden a la ip "+str(ip_str))
         else:
