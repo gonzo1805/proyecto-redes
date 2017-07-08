@@ -69,7 +69,7 @@ def escucha():
         print ("Esperando mensaje...")
         sc, addr = s.accept()
         recibido = sc.recv(1024)
-        # se verifica si el tamaño del paquete es de una solicitud
+        #se verifica si el tamaño del paquete es de una solicitud
         if len(recibido) == 22:
             #Se divide el paquete en sus respectivas partes
             tipo = recibido[0:2] #tipo de solicitud
@@ -117,35 +117,21 @@ def escucha():
             tipo = recibido[0:2]
             sa = recibido[2:6]
             ip = recibido[6:14]
-            tam = recibido[14:22]
+            numDestinos = recibido[14:22]
             alcanzabilidad.update({ip: {}})
-            #alcanzabilidad[ip] = {'tipo' : tipo, 'sa' : sa, 'Alcanzables': tam}
-            num = 0
-            pos = 22
-            vectorR = alcanzabilidad[ip]
-            #alcanzables = alcanzabilidad[ip]
-            for i in range (0, int(tam)):
-
-                vectorR['Destino' + str(num)] = {'IP': recibido[pos:pos+8], 'Mascara': recibido[pos+8:pos+16], 'SAs': {}}
-                #alcanzables['alcanzable' + str(num)] = recibido[pos+(16*i):pos+(16*i)+8]
-                #alcanzables['mascara' + str(num)] = recibido[pos+(16*i)+8:pos+(16*i)+16]
-                destData = vectorR['Destino' + str(num)]
-                alcanzables = destData['SAs']
-                pos2 = pos+16
-                numSas = int(recibido[pos2:pos2 + 4])
-                print("NUM: " + str(numSas))
-                pos2 = pos2 + 4
-                saID = 0
-                #sistemas = alcanzables['alcanzable' + str(num)]
-                for j in range(0, int(numSas)):
-                    alcanzables['SA' + str(saID)] = recibido[pos2+(4*j):pos2+(4*j)+4]
-                num += 1
-                pos = pos2+(4*(int(numSas)-1))+4
-                #pos = (pos+(16*i)+16)+4+(
-            num = pos+(16*(int(tam)-1))+16
-            #print("num", num)
-            #alcanzables['SAs'] = recibido[num:num+4]
-            #alcanzables['SA0'] = recibido[num+4:num+8]
+            cursor = 22
+            destino = alcanzabilidad[ip]
+            for i in range (0, int(numDestinos)):
+                destino['Destino' + str(i)] = {'IP': recibido[cursor:cursor+8], 'Mascara': recibido[cursor+8:cursor+16], 'SAs': {}}
+                datosDestino = destino['Destino' + str(i)]
+                sistemas = datosDestino['SAs']
+                cursorLista = cursor+16
+                numSistemas = int(recibido[cursorLista:cursorLista + 4])
+                print("numSistema: " + str(numSistemas))
+                cursorLista = cursorLista + 4
+                for j in range(0, numSistemas):
+                    sistemas['SA' + str(j)] = recibido[cursorLista+(4*j):cursorLista+(4*j)+4]
+                cursor = cursorLista+(4*(numSistemas-1))+4
             print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
@@ -164,9 +150,9 @@ def menu():
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
-curDest = 0
+numDestino = 0
 while True:
-    ip = input("Ingrese la dirección IP del destino\n")
+    ip = input("Ingrese la dirección IP del destino (0 para terminar)\n")
     if ip == "0":
         break
     else:
@@ -187,27 +173,27 @@ while True:
         mascara = ''.join(mascara)
         mascara = mascara.encode()
         print(mascara)
-        #alcanzabilidad['localhost'] = {'Destino' + str(curDest): {}}
-        vectorR = alcanzabilidad['localhost']
-        vectorR['Destino' + str(curDest)] = {'IP': ip, 'Mascara': mascara, 'SAs': {}}
-        destData = vectorR['Destino' + str(curDest)]
-        alcanzables = destData['SAs']
-        num = 0
+        destino = alcanzabilidad['localhost']
+        destino['Destino' + str(numDestino)] = {'IP': ip, 'Mascara': mascara, 'SAs': {}}
+        datosDestino = destino['Destino' + str(numDestino)]
+        sistemas = datosDestino['SAs']
+        numSistema = 0
+        print("Ingrese los sistemas autónomos a seguir para llegar a este destino (0 para terminar)\n")
         while True:
-            sa = input("Ingrese los sistemas autónomos a seguir para llegar a este destino (0 para terminar)\n")
+            sa = input("Ingrese número de sistema (0 para terminar)\n")
             if sa == "0":
                 break
             else:
                 sa = hex(int(sa))[2:]
-                alcanzables['Sa' + str(num) ] = sa
+                sistemas['SA' + str(numSistema) ] = sa
                 l = len(sa)
                 l = 4-l
                 for i in range(0,l):
                     sa = "0"+sa
                 sa = sa.encode()
                 print(sa)
-                num +=1
-        curDest+=1
+                numSistema +=1
+        numDestino+=1
 
 print("Alcanzables desde el principio: ", alcanzabilidad)
 time.sleep(5)
