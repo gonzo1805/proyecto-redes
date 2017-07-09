@@ -156,12 +156,6 @@ def menu():
     print ("\t3 - Enviar información de alcanzabilidad")
     print ("\t9 - salir")
 
-listener = threading.Thread(target=escucha, name = 'router')
-listener.start()
-input("Pulse una tecla para continuar")
-os.system('clear')
-print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
-
 numDestino = 0
 while True:
     ip = input("Ingrese la dirección IP del destino (0 para terminar)\n")
@@ -209,6 +203,12 @@ while True:
 
 print("Alcanzables desde el principio: ", alcanzabilidad)
 time.sleep(1)
+
+listener = threading.Thread(target=escucha, name = 'router')
+listener.start()
+input("Pulse una tecla para continuar")
+os.system('clear')
+print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
 while True:
     menu()
