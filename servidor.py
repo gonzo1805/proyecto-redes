@@ -189,13 +189,13 @@ while True:
         numSistema = 0
         print("Ingrese los sistemas autónomos a seguir para llegar a este destino (0 para terminar)\n")
         while True:
-            sa = input("Ingrese número de sistema (0 para terminar)\n")
+            sa_str = input("Ingrese número de sistema (0 para terminar)\n")
             if sa_str == "0":
                 break
             else:
                 sa_hex = encode(sa_str)
-                sistemas['SA' + str(numSistema) ] = sa_str
-                print(sa)
+                sistemas['SA' + str(numSistema) ] = sa_hex
+                print(sa_hex)
                 numSistema +=1
         numDestino+=1
 
