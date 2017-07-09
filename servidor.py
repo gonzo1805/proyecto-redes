@@ -11,7 +11,7 @@ vecinos = {}
 alcanzabilidad = {}
 alcanzabilidad['localhost'] = {}
 #esto es completamente arbitrario
-IP_HOST = str(random.randrange(256)) + "." + str(random.randrange(256)) + "." + str(random.randrange(256)) + "." + str(random.randrange(256))
+IP_HOST = "192.168.209.128"
 MSK_HOST = "255.255.255.0"
 SA_HOST = "2"
 
@@ -30,33 +30,33 @@ def escribeArchivo(aEscribir):
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
 def confirmacion(paquete,ip):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.listen(1)
-    s.settimeout(5)
     try:
-        s.bind((ip, 57809)) #si no funciona poner ""
-        s.connect((ip, 57809))
+        print(paquete)
+        s = socket.socket()      
+        s.connect((ip, 57809)) #"192.168.1.21"      
         s.send(paquete)
-        sc, addr = s.accept()
-        recibido = sc.recv(1024)
+        s.close()
     except:
         return 0
     else:
-        tipo = recibido[0:2]
-        s.close()
-        if tipo == b"02" or tipo == b"04":
-            return 1
-        else:
-            return 0
+        return 1
 
 def encode(direccion):
     direccion = direccion.split(".")
-    for i in range(0,len(direccion)):
-        direccion[i] = hex(int(direccion[i]))[2:]
-        if len(direccion[i]) == 1:
-            direccion[i] = "0"+direccion[i]
-    direccion = ''.join(direccion)
-    direccion = direccion.encode()
+    if len(direccion) == 1:
+        sa_hex = hex(int(direccion[0]))[2:]
+        l = len(sa_hex)
+        l = 4-l
+        for i in range(0,l):
+            sa_hex = "0"+sa_hex
+        direccion = sa_hex.encode()
+    else:
+        for i in range(0,len(direccion)):
+            direccion[i] = hex(int(direccion[i]))[2:]
+            if len(direccion[i]) == 1:
+                direccion[i] = "0"+direccion[i]
+        direccion = ''.join(direccion)
+        direccion = direccion.encode()
     return direccion
 
 def escucha():
@@ -76,29 +76,38 @@ def escucha():
             sa = recibido[2:6] #sistema autonomo
             ip = recibido[6:14]
             mascara = recibido[14:22]
+            tipo = recibido[0:2]
             if tipo == b"01":
                 print("se ingresó una solicitud de conexión")
-                #se envía mensaje de aceptación
-                respuesta = b"02"
-                respuesta += encode(SA_HOST)
-                respuesta += encode(IP_HOST)
-                respuesta += encode(MSK_HOST)
-                sc.send(respuesta)
-                print("se envió respuesta de aceptación")
-                #se ingresa en la tabla vecinos,
-                #el tipo re refiere a si está conectado o no
-                vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
-                escribeArchivo("Se agregó el vecino: "+str(ip))
-                print("se agregó con éxito el vecino: ",ip)
+                if ip in vecinos:
+                    print("Ya existe un vecino la dirección:",ip)
+                    input("Pulse una tecla para continuar")
+                else:                
+                    #se envía mensaje de aceptación
+                    respuesta = b"02"
+                    respuesta += encode(SA_HOST)
+                    respuesta += encode(IP_HOST)
+                    respuesta += encode(MSK_HOST)
+                    print(addr)
+                    sc.send(respuesta)
+                    print("se envió respuesta de aceptación")
+                    #se ingresa en la tabla vecinos,
+                    #el tipo re refiere a si está conectado o no
+                    vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
+                    escribeArchivo("Se agregó el vecino: "+str(ip))
+                    print("se agregó con éxito el vecino: ",ip)
             elif tipo == b"02":
                 print("Solicitud de vecino aceptada")
+                estado = b"01"
+                vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
+                escribeArchivo("Se agregó el vecino: "+str(ip))
             elif tipo == b"03":
                 print("se ingresó una solicitud de desconexión")
                 #buscar en la tabla vecinos
                 if ip in vecinos:
                     vecino = vecinos[ip]
                     if vecino['mascara'] == mascara and vecino['sa'] == sa:
-                        vecino['tipo'] = b"00"
+                        vecino['estado'] = b"00"
                         escribeArchivo("Se desconectó el vecino: "+str(ip))
                         respuesta = b"04"
                         respuesta += encode(SA_HOST)
@@ -108,6 +117,8 @@ def escucha():
                         print("se desconectó el vecino", ip)
                 else:
                     print("no existe un vecino con esa ip")
+            elif tipo == b"03":
+                print("Solicitud de desconexion aceptada")       
             else:
                 print("Paquete con solicitud no reconocida")
             print("tabla vecinos: ",vecinos)
@@ -136,9 +147,6 @@ def escucha():
     sc.close()
     s.close()
 
-listener = threading.Thread(target=escucha, name = 'router')
-listener.start()
-
 def menu():
     os.system('clear')
     print ("Seleccione una opción")
@@ -147,6 +155,9 @@ def menu():
     print ("\t3 - Enviar información de alcanzabilidad")
     print ("\t9 - salir")
 
+listener = threading.Thread(target=escucha, name = 'router')
+listener.start()
+input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
@@ -196,7 +207,7 @@ while True:
         numDestino+=1
 
 print("Alcanzables desde el principio: ", alcanzabilidad)
-time.sleep(5)
+time.sleep(1)
 
 while True:
     menu()
@@ -225,10 +236,9 @@ while True:
             solicitud += encode(MSK_HOST)
             print(solicitud)
             if confirmacion(solicitud,ip_str):
-                estado = b"01"
-                vecinos[ip] = {'estado': estado,'mascara': mask_hex,'sa': sa_hex}
-                escribeArchivo("Se agregó el vecino: "+str(ip_str))
-                input("Se agregó con éxito el vecino: "+str(ip_str)+"\npulsa una tecla para continuar\n")
+                vecinos[ip_hex] = {'estado': b"01",'mascara': mask_hex,'sa': sa_hex}
+                escribeArchivo("Se agregó el vecino: "+ip_str)
+                print("se agregó con éxito el vecino: ",ip_str)
             else:
                 input("No se logro establecer conexion con : "+str(ip_str)+"\npulsa una tecla para continuar\n")
         else:
@@ -241,16 +251,11 @@ while True:
         mask_str = input("Ingrese la máscara del vecino a desconectar\n")
         mask_hex = encode(mask_str)
         sa_str = input("Ingrese el sistema autonomo al que pertenece el vecino a desconectar\n")
-        sa_hex = hex(int(sa_str))[2:]
-        l = len(sa_hex)
-        l = 4-l
-        for i in range(0,l):
-            sa_hex = "0"+sa_hex
-        sa_hex = sa_hex.encode()
+        sa_hex = encode(sa_str)
         print(sa_hex)
         # buscar en la tabla vecinos
         if ip_hex in vecinos:
-            solicitud = b"04"
+            solicitud = b"03"
             solicitud += encode(SA_HOST)
             solicitud += encode(IP_HOST)
             solicitud += encode(MSK_HOST)
@@ -265,13 +270,13 @@ while True:
                 print("los demas datos sumistrados no corresponden a la ip "+str(ip_str))
         else:
             print("No Existe un vecino con la direccion "+str(ip_str))
-        input("Pulsa una tecla para continuar")
     elif opcionMenu=="3":
         print ("")
-        input("Ha pulsado la opción 3...\npulse una tecla para continuar")
+        print("Ha pulsado la opción 3...")
     elif opcionMenu=="9":
         break
     else:
         print ("")
-        input("No ha pulsado ninguna opción correcta...\npulse una tecla para continuar")
+        print("No ha pulsado ninguna opción correcta...")
+    input("Pulse una tecla para continuar")
 print ("Fin")

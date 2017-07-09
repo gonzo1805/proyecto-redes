@@ -1,2 +1,2 @@
-2017-07-06 22:24:52 Se agregó el vecino: b'00020002'
-2017-07-06 22:24:56 Se desconectó el vecino: b'00020002'
+2017-07-09 13:55:53 Se agregó el vecino: 192.168.1.21
+2017-07-09 13:56:17 Se desconectó el vecino: 192.168.1.21
