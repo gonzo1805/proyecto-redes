@@ -4,6 +4,7 @@ import os.path
 import threading
 import time
 import random
+import sys
 from _datetime import datetime
 
 run = 0
@@ -274,9 +275,11 @@ while True:
         print ("")
         print("Ha pulsado la opción 3...")
     elif opcionMenu=="9":
+
         break
     else:
         print ("")
         print("No ha pulsado ninguna opción correcta...")
     input("Pulse una tecla para continuar")
-print ("Fin")
+    print("FIN")
+os._exit(0)
