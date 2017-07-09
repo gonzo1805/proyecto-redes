@@ -167,7 +167,6 @@ def menu():
 
 listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
-updater()
 input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
@@ -219,6 +218,13 @@ while True:
 
 print("Alcanzables desde el principio: ", alcanzabilidad)
 time.sleep(1)
+
+listener = threading.Thread(target=escucha, name = 'router')
+listener.start()
+updater()
+input("Pulse una tecla para continuar")
+os.system('clear')
+print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
 while True:
     menu()
