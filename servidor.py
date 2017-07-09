@@ -148,6 +148,15 @@ def escucha():
     sc.close()
     s.close()
 
+def updater():
+    update = threading.Timer(31.0, updater).start()
+    paquete = ""
+    for i in vecinos:
+        for x in alcanzabilidad:
+            paquete +=
+        print(22)
+    print("Hello")
+
 def menu():
     os.system('clear')
     print ("Seleccione una opción")
@@ -158,6 +167,7 @@ def menu():
 
 listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
+updater()
 input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
