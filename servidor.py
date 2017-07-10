@@ -154,11 +154,15 @@ def escucha():
             sa = recibido[2:6]
             ip = recibido[6:14]
             numDestinos = recibido[14:22]
-            alcanzabilidad.update({ip: {}})
+            indice = 0
+            if not ip in alcanzabilidad:
+                alcanzabilidad.update({ip: {}})
+            else:
+                indice = len(alcanzabilidad[ip])
             cursor = 22
             destino = alcanzabilidad[ip]
             escribeArchivo("Recibiendo destinos alcanzables del vecino "+str(ip), "Alcanzables.txt")
-            for i in range (0, int(numDestinos)):
+            for i in range (indice, indice + int(numDestinos)):
                 ipDestino = recibido[cursor:cursor+8]
                 destino['Destino' + str(i)] = {'IP': ipDestino, 'Mascara': recibido[cursor+8:cursor+16], 'SAs': {}}
                 datosDestino = destino['Destino' + str(i)]

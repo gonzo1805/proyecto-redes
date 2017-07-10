@@ -37,6 +37,28 @@ paquete+= b"0044"
 paquete+= b"0045"
 s.send(paquete)
 
+#Mensaje de prueba sobre alcanzabilidad
+time.sleep(2)
+s = socket.socket()
+s.connect(("localhost", 57809))
+paquete= b"02" #Intercambio de información
+paquete+= b"0002" #Sistema autónomo
+paquete+= b"00020002" #Dirección IP
+paquete+= b"00000002" #Cantidad de destinos
+paquete+= b"00030004"
+paquete+= b"FFFFFFF0"
+paquete+= b"0003" #Cantidad de SAs
+paquete+= b"0010" #SAs a seguir
+paquete+= b"0011"
+paquete+= b"0012"
+paquete+= b"00090099" #Direcciones IP
+paquete+= b"FFFFFFF0" #Máscaras
+paquete+= b"0003" #Cantidad de SAs
+paquete+= b"0067" #SAs a seguir
+paquete+= b"0068"
+paquete+= b"0069"
+s.send(paquete)
+
 time.sleep(2)
 s = socket.socket()
 s.connect(("localhost", 57809))
