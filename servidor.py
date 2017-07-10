@@ -181,14 +181,28 @@ def escucha():
 
 def updater():
     update = threading.Timer(31.0, updater).start()
-    paquete = ""
+    paquete = b''
     for i in vecinos:
         direccionString = decode(i)
         s = socket.socket()
         s.connect((direccionString, 57809))
-        for x in alcanzabilidad:
-            paquete += str.encode(x)
+        for x in alcanzabilidad:                         #Itera sobre cada vecino con destinos alcanzables que estén en la tabla de alcanzabilidad
+            if x == "localhost":
+                paquete += b'7F000001'                   #Si la entrada pertenece a localhost, envía el paquete con fuente 127.0.0.1
+            else:
+                paquete += x                             #Si no, envía la IP ya codificada que está en la tabla (es un vecino)
+            destino = alcanzabilidad[x]                  #Para acceder a la lista de destinos asociados a la IP del vecino
+            paquete += encode(str(len(destino)))         #Para enviar el total de destinos alcanzables como valor hex
+            for y in destino:                            #Itera sobre cada destino para obtener sus datos
+                datosDestino = destino[y]                #Para acceder a los datos del destino
+                paquete += datosDestino['IP']            #Almacena la IP del destino
+                paquete += datosDestino['Mascara']       #Almacena la máscara del vecino
+                sistemas = datosDestino['SAs']           #Para acceder a los sistmas asociados al vecino
+                paquete += encode(str(len(sistemas)))    #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
+                for z in sistemas:                       #Itera sobre cada sistema y obtiene su ID
+                    paquete += sistemas[z]               #Almacena el ID del sistema
         s.send(paquete)
+    print(paquete)
     print("Actualizacion")
 
 def menu():
