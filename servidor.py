@@ -199,46 +199,29 @@ print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
 numDestino = 0
 while True:
-    ip = input("Ingrese la dirección IP del destino (0 para terminar)\n")
-    if ip == "0":
+    ip_str = input("Ingrese la dirección IP del destino (0 para terminar)\n")
+    if ip_str == "0":
         break
     else:
-        ip = ip.split(".")
-        for i in range(0,len(ip)):
-            ip[i] = hex(int(ip[i]))[2:]
-            if len(ip[i]) == 1:
-                ip[i] = "0"+ip[i]
-        ip = ''.join(ip)
-        ip = ip.encode()
-        print(ip)
-        mascara = input("Ingrese la máscara del destino\n")
-        mascara = mascara.split(".")
-        for i in range(0,4):
-            mascara[i] = hex(int(mascara[i]))[2:]
-            if len(mascara[i]) == 1:
-                mascara[i] = "0"+mascara[i]
-        mascara = ''.join(mascara)
-        mascara = mascara.encode()
-        print(mascara)
+        ip_hex = encode(ip_str)
+        print(ip_hex)
+        mascara_str = input("Ingrese la máscara del destino\n")
+        mascara_hex = encode(mascara_str)
+        print(mascara_hex)
         destino = alcanzabilidad['localhost']
-        destino['Destino' + str(numDestino)] = {'IP': ip, 'Mascara': mascara, 'SAs': {}}
+        destino['Destino' + str(numDestino)] = {'IP': ip_hex, 'Mascara': mascara_hex, 'SAs': {}}
         datosDestino = destino['Destino' + str(numDestino)]
         sistemas = datosDestino['SAs']
         numSistema = 0
         print("Ingrese los sistemas autónomos a seguir para llegar a este destino (0 para terminar)\n")
         while True:
-            sa = input("Ingrese número de sistema (0 para terminar)\n")
-            if sa == "0":
+            sa_str = input("Ingrese número de sistema (0 para terminar)\n")
+            if sa_str == "0":
                 break
             else:
-                sa = hex(int(sa))[2:]
-                sistemas['SA' + str(numSistema) ] = sa
-                l = len(sa)
-                l = 4-l
-                for i in range(0,l):
-                    sa = "0"+sa
-                sa = sa.encode()
-                print(sa)
+                sa_hex = encode(sa_str)
+                sistemas['SA' + str(numSistema) ] = sa_hex
+                print(sa_hex)
                 numSistema +=1
         numDestino+=1
 
@@ -250,7 +233,6 @@ listener.start()
 updater()
 input("Pulse una tecla para continuar")
 os.system('clear')
-print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
 while True:
     menu()
