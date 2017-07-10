@@ -7,6 +7,8 @@ import random
 import sys
 from _datetime import datetime
 
+import struct
+
 run = 0
 vecinos = {}
 alcanzabilidad = {}
@@ -58,7 +60,29 @@ def encode(direccion):
                 direccion[i] = "0"+direccion[i]
         direccion = ''.join(direccion)
         direccion = direccion.encode()
+
     return direccion
+
+def decode(direccion):
+    str = direccion.decode("utf-8")
+    decoded = ""
+    parte1 = str[0:-6]
+    parte2 = str[2:-4]
+    parte3 = str[4:-2]
+    parte4 = str[6:]
+    x = int(parte1, 16)
+    decoded += x.__str__()
+    decoded += "."
+    x = int(parte2, 16)
+    decoded += x.__str__()
+    decoded += "."
+    x = int(parte3, 16)
+    decoded += x.__str__()
+    decoded += "."
+    x = int(parte4, 16)
+    decoded += x.__str__()
+    return decoded
+
 
 def escucha():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -152,10 +176,13 @@ def updater():
     update = threading.Timer(31.0, updater).start()
     paquete = ""
     for i in vecinos:
+        direccionString = decode(i)
+        s = socket.socket()
+        s.connect((direccionString, 57809))
         for x in alcanzabilidad:
-            paquete +=
-        print(22)
-    print("Hello")
+            paquete += str.encode(x)
+        s.send(paquete)
+    print("Actualizacion")
 
 def menu():
     os.system('clear')
@@ -165,8 +192,7 @@ def menu():
     print ("\t3 - Enviar información de alcanzabilidad")
     print ("\t9 - salir")
 
-listener = threading.Thread(target=escucha, name = 'router')
-listener.start()
+
 input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")

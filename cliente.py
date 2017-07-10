@@ -10,7 +10,7 @@ s.connect(("localhost", 57809))
 
 paquete = b"01" #solicitud de conexión
 paquete+= b"0002" #sistema autonomo
-paquete+= b"00020002" #IP
+paquete+= b"0a0a0a0a" #IP
 paquete+= b"FFFFFF00" #mascara
 
 s.send(paquete)
