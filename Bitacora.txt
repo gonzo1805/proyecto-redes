@@ -1,1 +1,0 @@
-2017-07-09 18:19:34 Se agregó el vecino: b'0a0a0a0a'
