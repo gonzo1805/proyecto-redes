@@ -18,18 +18,18 @@ IP_HOST = "192.168.209.128"
 MSK_HOST = "255.255.255.0"
 SA_HOST = "2"
 
-def escribeArchivo(aEscribir):
+def escribeArchivo(aEscribir, nombreArchivo):
     ## Si no es la primera escritura del run, solo escribe en la bitacora
     if (run == 1):
-        file = open("Bitacora.txt", "a")
+        file = open(nombreArchivo, "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
     ## Si es la primera escritura del run, borra la bitacora vieja y crea una nueva
     elif (run == 0):
-        if (os.path.isfile("Bitacora.txt")):
-            os.remove("Bitacora.txt")
+        if (os.path.isfile(nombreArchivo)):
+            os.remove(nombreArchivo)
         global run
         run = 1
-        file = open("Bitacora.txt", "a")
+        file = open(nombreArchivo, "a")
         file.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " " + aEscribir + "\n")
 
 def confirmacion(paquete,ip):
@@ -119,13 +119,13 @@ def escucha():
                     #se ingresa en la tabla vecinos,
                     #el tipo re refiere a si está conectado o no
                     vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
-                    escribeArchivo("Se agregó el vecino: "+str(ip))
+                    escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
                     print("se agregó con éxito el vecino: ",ip)
             elif tipo == b"02":
                 print("Solicitud de vecino aceptada")
                 estado = b"01"
                 vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
-                escribeArchivo("Se agregó el vecino: "+str(ip))
+                escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
             elif tipo == b"03":
                 print("se ingresó una solicitud de desconexión")
                 #buscar en la tabla vecinos
@@ -133,7 +133,7 @@ def escucha():
                     vecino = vecinos[ip]
                     if vecino['mascara'] == mascara and vecino['sa'] == sa:
                         vecino['estado'] = b"00"
-                        escribeArchivo("Se desconectó el vecino: "+str(ip))
+                        escribeArchivo("Se desconectó el vecino: "+str(ip), "Vecinos.txt")
                         respuesta = b"04"
                         respuesta += encode(SA_HOST)
                         respuesta += encode(IP_HOST)
@@ -157,8 +157,10 @@ def escucha():
             alcanzabilidad.update({ip: {}})
             cursor = 22
             destino = alcanzabilidad[ip]
+            escribeArchivo("Recibiendo destinos alcanzables del vecino "+str(ip), "Alcanzables.txt")
             for i in range (0, int(numDestinos)):
-                destino['Destino' + str(i)] = {'IP': recibido[cursor:cursor+8], 'Mascara': recibido[cursor+8:cursor+16], 'SAs': {}}
+                ipDestino = recibido[cursor:cursor+8]
+                destino['Destino' + str(i)] = {'IP': ipDestino, 'Mascara': recibido[cursor+8:cursor+16], 'SAs': {}}
                 datosDestino = destino['Destino' + str(i)]
                 sistemas = datosDestino['SAs']
                 cursorLista = cursor+16
@@ -168,6 +170,7 @@ def escucha():
                 for j in range(0, numSistemas):
                     sistemas['SA' + str(j)] = recibido[cursorLista+(4*j):cursorLista+(4*j)+4]
                 cursor = cursorLista+(4*(numSistemas-1))+4
+                escribeArchivo("Se agregó el destino: "+str(ipDestino), "Alcanzables.txt")
             print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
@@ -197,6 +200,7 @@ input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
+escribeArchivo("Agregando destinos alcanzables directamente (localhost)", "Alcanzables.txt")
 numDestino = 0
 while True:
     ip_str = input("Ingrese la dirección IP del destino (0 para terminar)\n")
@@ -224,6 +228,7 @@ while True:
                 print(sa_hex)
                 numSistema +=1
         numDestino+=1
+        escribeArchivo("Se agregó el destino: "+str(ip_str), "Alcanzables.txt")
 
 print("Alcanzables desde el principio: ", alcanzabilidad)
 time.sleep(1)
@@ -262,7 +267,7 @@ while True:
             print(solicitud)
             if confirmacion(solicitud,ip_str):
                 vecinos[ip_hex] = {'estado': b"01",'mascara': mask_hex,'sa': sa_hex}
-                escribeArchivo("Se agregó el vecino: "+ip_str)
+                escribeArchivo("Se agregó el vecino: "+ip_str, "Vecinos.txt")
                 print("se agregó con éxito el vecino: ",ip_str)
             else:
                 input("No se logro establecer conexion con : "+str(ip_str)+"\npulsa una tecla para continuar\n")
@@ -289,7 +294,7 @@ while True:
             vecino = vecinos[ip_hex]
             if vecino['mascara'] == mask_hex and vecino['sa'] == sa_hex:
                 vecinos[ip_hex]['estado'] = b"00"
-                escribeArchivo("Se desconectó el vecino: "+str(ip_str))
+                escribeArchivo("Se desconectó el vecino: "+str(ip_str), "Vecinos.txt")
                 print("se desconectó el vecino", ip_str)
             else:
                 print("los demas datos sumistrados no corresponden a la ip "+str(ip_str))
@@ -297,7 +302,7 @@ while True:
             print("No Existe un vecino con la direccion "+str(ip_str))
     elif opcionMenu=="3":
         print ("")
-        print("Ha pulsado la opción 3...")
+        updater()
     elif opcionMenu=="9":
 
         break
