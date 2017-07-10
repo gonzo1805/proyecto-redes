@@ -200,7 +200,6 @@ def menu():
     print ("\t9 - salir")
 
 
-input("Pulse una tecla para continuar")
 os.system('clear')
 print("Se necesita agregar destinos alcanzables (digite 0 para terminar)")
 
@@ -240,7 +239,6 @@ time.sleep(1)
 listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
 updater()
-input("Pulse una tecla para continuar")
 os.system('clear')
 
 while True:
