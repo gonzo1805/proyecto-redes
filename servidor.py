@@ -14,9 +14,9 @@ vecinos = {}
 alcanzabilidad = {}
 alcanzabilidad['localhost'] = {}
 #esto es completamente arbitrario
-IP_HOST = "192.168.209.128"
-MSK_HOST = "255.255.255.0"
-SA_HOST = "2"
+IP_HOST = "10.1.130.155"
+MSK_HOST = "255.255.0.0"
+SA_HOST = "3"
 
 def escribeArchivo(aEscribir, nombreArchivo):
     ## Si no es la primera escritura del run, solo escribe en la bitacora
@@ -64,23 +64,29 @@ def encode(direccion):
     return direccion
 
 def decode(direccion):
-    str = direccion.decode("utf-8")
+    string = direccion.decode("utf-8")
     decoded = ""
-    parte1 = str[0:-6]
-    parte2 = str[2:-4]
-    parte3 = str[4:-2]
-    parte4 = str[6:]
-    x = int(parte1, 16)
-    decoded += x.__str__()
-    decoded += "."
-    x = int(parte2, 16)
-    decoded += x.__str__()
-    decoded += "."
-    x = int(parte3, 16)
-    decoded += x.__str__()
-    decoded += "."
-    x = int(parte4, 16)
-    decoded += x.__str__()
+    parte1 = string[0:2]
+    parte2 = string[2:4]
+    if len(direccion) == 4:
+        x = int(parte1, 16)
+        decoded += x.__str__()
+        x = int(parte2, 16)
+        decoded += x.__str__()
+    else:
+        parte3 = string[4:6]
+        parte4 = string[6:]
+        x = int(parte1, 16)
+        decoded += x.__str__()
+        decoded += "."
+        x = int(parte2, 16)
+        decoded += x.__str__()
+        decoded += "."
+        x = int(parte3, 16)
+        decoded += x.__str__()
+        decoded += "."
+        x = int(parte4, 16)
+        decoded += x.__str__()
     return decoded
 
 
@@ -94,116 +100,203 @@ def escucha():
         print ("Esperando mensaje...")
         sc, addr = s.accept()
         recibido = sc.recv(1024)
-        #se verifica si el tamaño del paquete es de una solicitud
-        if len(recibido) == 22:
-            #Se divide el paquete en sus respectivas partes
-            tipo = recibido[0:2] #tipo de solicitud
-            sa = recibido[2:6] #sistema autonomo
-            ip = recibido[6:14]
-            mascara = recibido[14:22]
-            tipo = recibido[0:2]
-            if tipo == b"01":
-                print("se ingresó una solicitud de conexión")
-                if ip in vecinos:
-                    print("Ya existe un vecino la dirección:",ip)
-                    input("Pulse una tecla para continuar")
-                else:                
-                    #se envía mensaje de aceptación
-                    respuesta = b"02"
-                    respuesta += encode(SA_HOST)
-                    respuesta += encode(IP_HOST)
-                    respuesta += encode(MSK_HOST)
-                    print(addr)
-                    sc.send(respuesta)
-                    print("se envió respuesta de aceptación")
-                    #se ingresa en la tabla vecinos,
-                    #el tipo re refiere a si está conectado o no
-                    vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
-                    escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
-                    print("se agregó con éxito el vecino: ",ip)
-            elif tipo == b"02":
-                print("Solicitud de vecino aceptada")
-                estado = b"01"
-                vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
-                escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
-            elif tipo == b"03":
-                print("se ingresó una solicitud de desconexión")
-                #buscar en la tabla vecinos
-                if ip in vecinos:
-                    vecino = vecinos[ip]
-                    if vecino['mascara'] == mascara and vecino['sa'] == sa:
-                        vecino['estado'] = b"00"
-                        escribeArchivo("Se desconectó el vecino: "+str(ip), "Vecinos.txt")
-                        respuesta = b"04"
+        recibido = list(recibido)
+        print(recibido)
+        if len(recibido) != 0:
+            #se verifica si el tamaño del paquete es de una solicitud
+            
+            if recibido[0] != 5:
+                tipo = b"0" + bytes(hex(recibido[0])[2:],"utf-8")
+                sa = recibido[1]
+                sa = encode(str(sa))
+                ip = str(recibido[2])+"."
+                ip += str(recibido[3])+"."
+                ip += str(recibido[4])+"."
+                ip += str(recibido[5])
+                ip = encode(ip)
+                mascara = str(recibido[6])+"."
+                mascara += str(recibido[7])+"."
+                mascara += str(recibido[8])+"."
+                mascara += str(recibido[9])
+                mascara = encode(mascara)
+                recibido = b''
+                recibido += tipo+sa+ip+mascara
+                print(recibido)
+                #Se divide el paquete en sus respectivas partes
+                tipo = recibido[0:2] #tipo de solicitud
+                sa = recibido[2:6] #sistema autonomo
+                ip = recibido[6:14]
+                mascara = recibido[14:22]
+                if tipo == b"01":
+                    print("se ingresó una solicitud de conexión")
+                    if ip in vecinos:
+                        print("Ya existe un vecino la dirección:",ip)
+                        input("Pulse una tecla para continuar")
+                    else:                
+                        #se envía mensaje de aceptación
+                        respuesta = b"02"
                         respuesta += encode(SA_HOST)
                         respuesta += encode(IP_HOST)
                         respuesta += encode(MSK_HOST)
+                        ip_int = IP_HOST.split(".")
+                        msk_int = MSK_HOST.split(".")
+                        sa_int = int(SA_HOST)
+                        lista = [4]            
+                        lista.append(sa_int)
+                        for i in ip_int:
+                            lista.append(int(i))
+                        for i in msk_int:
+                            lista.append(int(i))
+                        respuesta = bytes(lista)
+                        print(respuesta)
                         sc.send(respuesta)
-                        print("se desconectó el vecino", ip)
+                        print("se envió respuesta de aceptación")
+                        #se ingresa en la tabla vecinos,
+                        #el tipo re refiere a si está conectado o no
+                        vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
+                        escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
+                        print("se agregó con éxito el vecino: ",ip)
+                elif tipo == b"02":
+                    print("Solicitud de vecino aceptada")
+                    estado = b"01"
+                    vecinos[ip] = {'estado': estado,'mascara': mascara,'sa': sa}
+                    escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
+                elif tipo == b"03":
+                    print("se ingresó una solicitud de desconexión")
+                    #buscar en la tabla vecinos
+                    if ip in vecinos:
+                        vecino = vecinos[ip]
+                        if vecino['mascara'] == mascara and vecino['sa'] == sa:
+                            vecino['estado'] = b"00"
+                            escribeArchivo("Se desconectó el vecino: "+str(ip), "Vecinos.txt")
+                            respuesta = b"04"
+                            respuesta += encode(SA_HOST)
+                            respuesta += encode(IP_HOST)
+                            respuesta += encode(MSK_HOST)
+                            ip_int = IP_HOST.split(".")
+                            msk_int = MSK_HOST.split(".")
+                            sa_int = int(SA_HOST)
+                            lista = [4]            
+                            lista.append(sa_int)
+                            for i in ip_int:
+                                lista.append(int(i))
+                            for i in msk_int:
+                                lista.append(int(i))
+                            respuesta = bytes(lista)
+                            print(respuesta)
+                            sc.send(respuesta)
+                            print("se desconectó el vecino", ip)
+                    else:
+                        print("no existe un vecino con esa ip")
+                elif tipo == b"03":
+                    print("Solicitud de desconexion aceptada")       
                 else:
-                    print("no existe un vecino con esa ip")
-            elif tipo == b"03":
-                print("Solicitud de desconexion aceptada")       
+                    print("Paquete con solicitud no reconocida")
+                print("tabla vecinos: ",vecinos)
             else:
-                print("Paquete con solicitud no reconocida")
-            print("tabla vecinos: ",vecinos)
-        else:
-            print("Rec: ", recibido)
-            #Se divide el paquete
-            tipo = recibido[0:2]
-            sa = recibido[2:6]
-            ip = recibido[6:14]
-            numDestinos = recibido[14:22]
-            indice = 0
-            if not ip in alcanzabilidad:
-                alcanzabilidad.update({ip: {}})
-            else:
-                indice = len(alcanzabilidad[ip])
-            cursor = 22
-            destino = alcanzabilidad[ip]
-            escribeArchivo("Recibiendo destinos alcanzables del vecino "+str(ip), "Alcanzables.txt")
-            for i in range (indice, indice + int(numDestinos)):
-                ipDestino = recibido[cursor:cursor+8]
-                destino['Destino' + str(i)] = {'IP': ipDestino, 'Mascara': recibido[cursor+8:cursor+16], 'SAs': {}}
-                datosDestino = destino['Destino' + str(i)]
-                sistemas = datosDestino['SAs']
-                cursorLista = cursor+16
-                numSistemas = int(recibido[cursorLista:cursorLista + 4])
-                print("numSistema: " + str(numSistemas))
-                cursorLista = cursorLista + 4
-                for j in range(0, numSistemas):
-                    sistemas['SA' + str(j)] = recibido[cursorLista+(4*j):cursorLista+(4*j)+4]
-                cursor = cursorLista+(4*(numSistemas-1))+4
-                escribeArchivo("Se agregó el destino: "+str(ipDestino), "Alcanzables.txt")
-            print("tabla alcanzabilidad: ", alcanzabilidad)
+                #del recibido[0]
+                print("Rec: ", recibido)
+                #Se divide el paquete
+                #tipo = recibido[0:2]
+                #sa = recibido[2:6]
+                #ip = recibido[6:14]
+                #numDestinos = recibido[14:22]
+                indice = 0
+                
+                ip = str(recibido[1])+"."
+                
+                ip += str(recibido[2])+"."
+                ip += str(recibido[3])+"."
+                ip += str(recibido[4])
+                ip = encode(ip)
+
+                numDestinos = recibido[5]
+                
+                if not ip in alcanzabilidad:
+                    alcanzabilidad.update({ip: {}})
+                else:
+                    indice = len(alcanzabilidad[ip])
+                cursor = 6
+                destino = alcanzabilidad[ip]
+                escribeArchivo("Recibiendo destinos alcanzables del vecino "+str(ip), "Alcanzables.txt")
+                for i in range (indice, indice + int(numDestinos)):                    
+                    ipDestino = str(recibido[cursor])+"."
+                    ipDestino += str(recibido[cursor+1])+"."
+                    ipDestino += str(recibido[cursor+2])+"."
+                    ipDestino += str(recibido[cursor+3])
+                    ipDestino = encode(ipDestino)
+                    cursor = cursor + 4
+                    mascara = str(recibido[cursor])+"."
+                    mascara += str(recibido[cursor+1])+"."
+                    mascara += str(recibido[cursor+2])+"."
+                    mascara += str(recibido[cursor+3])
+                    mascara = encode(mascara)
+                    destino['Destino' + str(i)] = {'IP': ipDestino, 'Mascara': mascara, 'SAs': {}}
+                    datosDestino = destino['Destino' + str(i)]
+                    sistemas = datosDestino['SAs']
+                    #cursorLista = cursor+4
+                    cursor =  cursor + 4
+                    numSistemas = int(recibido[cursor])
+                    cursor = cursor + 1
+                    print("numSistema: " + str(numSistemas))
+                    #cursorLista = cursorLista + 4
+                    #cursor = cursor + 4
+                    for j in range(0, numSistemas):
+                        sistemas['SA' + str(j)] = encode(str(recibido[cursor]))
+                        cursor = cursor + 1
+                    #cursor = cursorLista+(4*(numSistemas-1))+4
+                    escribeArchivo("Se agregó el destino: "+str(ipDestino), "Alcanzables.txt")
+                print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
 
 def updater():
-    update = threading.Timer(31.0, updater).start()
-    paquete = b''
+    #update = threading.Timer(31.0, updater).start()
+    #paquete = b''
+    #paquete = ['q']
     for i in vecinos:
         direccionString = decode(i)
         s = socket.socket()
         s.connect((direccionString, 57809))
+        paquete = [5]
+        ip_int = 0
         for x in alcanzabilidad:                         #Itera sobre cada vecino con destinos alcanzables que estén en la tabla de alcanzabilidad
             if x == "localhost":
-                paquete += b'7F000001'                   #Si la entrada pertenece a localhost, envía el paquete con fuente 127.0.0.1
+                ip_int = IP_HOST.split(".")
+                #Si la entrada pertenece a localhost, envía el paquete con fuente 127.0.0.1
             else:
-                paquete += x                             #Si no, envía la IP ya codificada que está en la tabla (es un vecino)
+                ip_int = str(decode(x)).split(".")
+            for i in ip_int:
+                paquete.append(int(i))
+            #Si no, envía la IP ya codificada que está en la tabla (es un vecino)
             destino = alcanzabilidad[x]                  #Para acceder a la lista de destinos asociados a la IP del vecino
-            paquete += encode(str(len(destino)))         #Para enviar el total de destinos alcanzables como valor hex
+            paquete.append(len(destino))
+            #Para enviar el total de destinos alcanzables como valor hex
             for y in destino:                            #Itera sobre cada destino para obtener sus datos
-                datosDestino = destino[y]                #Para acceder a los datos del destino
-                paquete += datosDestino['IP']            #Almacena la IP del destino
-                paquete += datosDestino['Mascara']       #Almacena la máscara del vecino
+                datosDestino = destino[y]
+                ip_int = str(decode(datosDestino['IP'])).split(".")                #Para acceder a los datos del destino
+                for i in ip_int:
+                    paquete.append(int(i))
+                #Almacena la IP del destino
+                msk_int = str(decode(datosDestino['Mascara'])).split(".")
+                for i in msk_int:
+                    paquete.append(int(i))
+                #Almacena la máscara del vecino
                 sistemas = datosDestino['SAs']           #Para acceder a los sistmas asociados al vecino
-                paquete += encode(str(len(sistemas)))    #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
+                paquete.append(len(sistemas))
+                #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
                 for z in sistemas:                       #Itera sobre cada sistema y obtiene su ID
-                    paquete += sistemas[z]               #Almacena el ID del sistema
-        s.send(paquete)
-    print(paquete)
-    print("Actualizacion")
+                    print("SISTEMA: " + str(sistemas[z]))
+                    sa_int = str(decode(sistemas[z]))
+                    paquete.append(int(sa_int))
+                    #Almacena el ID del sistema
+        if len(paquete) != 1:
+            if paquete[5] != 0:        
+                #print("Paquete: "+paquete)                
+                respuesta = bytes(paquete)
+                #print("Respuesta: "+respuesta)
+                s.send(respuesta)
+        s.close()
 
 def menu():
     os.system('clear')
@@ -252,7 +345,9 @@ time.sleep(1)
 
 listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
-updater()
+#updater()
+update = threading.Timer(31.0, updater)
+update.start()
 os.system('clear')
 
 while True:
@@ -279,9 +374,19 @@ while True:
             solicitud = b"01"
             solicitud += encode(SA_HOST)
             solicitud += encode(IP_HOST)
-            solicitud += encode(MSK_HOST)
-            print(solicitud)
-            if confirmacion(solicitud,ip_str):
+            solicitud += encode(MSK_HOST)            
+            ip_int = IP_HOST.split(".")
+            msk_int = MSK_HOST.split(".")
+            sa_int = int(SA_HOST)
+            lista = [1]            
+            lista.append(sa_int)
+            for i in ip_int:
+                lista.append(int(i))
+            for i in msk_int:
+                lista.append(int(i))
+            respuesta = bytes(lista)
+            print(respuesta)
+            if confirmacion(respuesta,ip_str):
                 vecinos[ip_hex] = {'estado': b"01",'mascara': mask_hex,'sa': sa_hex}
                 escribeArchivo("Se agregó el vecino: "+ip_str, "Vecinos.txt")
                 print("se agregó con éxito el vecino: ",ip_str)
@@ -305,7 +410,18 @@ while True:
             solicitud += encode(SA_HOST)
             solicitud += encode(IP_HOST)
             solicitud += encode(MSK_HOST)
-            if not confirmacion(solicitud,ip_str):
+            ip_int = IP_HOST.split(".")
+            msk_int = MSK_HOST.split(".")
+            sa_int = int(SA_HOST)
+            lista = [2]            
+            lista.append(sa_int)
+            for i in ip_int:
+                lista.append(int(i))
+            for i in msk_int:
+                lista.append(int(i))
+            respuesta = bytes(lista)
+            print(respuesta)
+            if not confirmacion(respuesta,ip_str):
                 input("No se logro establecer conexion con : "+str(ip_str))
             vecino = vecinos[ip_hex]
             if vecino['mascara'] == mask_hex and vecino['sa'] == sa_hex:
