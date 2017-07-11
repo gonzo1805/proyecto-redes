@@ -104,7 +104,6 @@ def escucha():
         print(recibido)
         if len(recibido) != 0:
             #se verifica si el tamaño del paquete es de una solicitud
-            
             if recibido[0] != 5:
                 tipo = b"0" + bytes(hex(recibido[0])[2:],"utf-8")
                 sa = recibido[1]
@@ -194,17 +193,10 @@ def escucha():
                     print("Paquete con solicitud no reconocida")
                 print("tabla vecinos: ",vecinos)
             else:
-                #del recibido[0]
                 print("Rec: ", recibido)
-                #Se divide el paquete
-                #tipo = recibido[0:2]
-                #sa = recibido[2:6]
-                #ip = recibido[6:14]
-                #numDestinos = recibido[14:22]
                 indice = 0
                 
                 ip = str(recibido[1])+"."
-                
                 ip += str(recibido[2])+"."
                 ip += str(recibido[3])+"."
                 ip += str(recibido[4])
@@ -234,67 +226,51 @@ def escucha():
                     destino['Destino' + str(i)] = {'IP': ipDestino, 'Mascara': mascara, 'SAs': {}}
                     datosDestino = destino['Destino' + str(i)]
                     sistemas = datosDestino['SAs']
-                    #cursorLista = cursor+4
                     cursor =  cursor + 4
                     numSistemas = int(recibido[cursor])
                     cursor = cursor + 1
                     print("numSistema: " + str(numSistemas))
-                    #cursorLista = cursorLista + 4
-                    #cursor = cursor + 4
                     for j in range(0, numSistemas):
                         sistemas['SA' + str(j)] = encode(str(recibido[cursor]))
                         cursor = cursor + 1
-                    #cursor = cursorLista+(4*(numSistemas-1))+4
                     escribeArchivo("Se agregó el destino: "+str(ipDestino), "Alcanzables.txt")
                 print("tabla alcanzabilidad: ", alcanzabilidad)
     sc.close()
     s.close()
 
 def updater():
-    #update = threading.Timer(31.0, updater).start()
-    #paquete = b''
-    #paquete = ['q']
     for i in vecinos:
         direccionString = decode(i)
         s = socket.socket()
         s.connect((direccionString, 57809))
         paquete = [5]
         ip_int = 0
-        for x in alcanzabilidad:                         #Itera sobre cada vecino con destinos alcanzables que estén en la tabla de alcanzabilidad
-            if x == "localhost":
+        for x in alcanzabilidad:                                             #Itera sobre cada vecino con destinos alcanzables que estén en la tabla de alcanzabilidad
+            if x == "localhost":                                             #Si la entrada pertenece a localhost, envía el paquete con su propia IP como fuente
                 ip_int = IP_HOST.split(".")
-                #Si la entrada pertenece a localhost, envía el paquete con fuente 127.0.0.1
-            else:
+            else:                                                            #Si no, envía la IP ya codificada que está en la tabla (es un vecino)
                 ip_int = str(decode(x)).split(".")
             for i in ip_int:
                 paquete.append(int(i))
-            #Si no, envía la IP ya codificada que está en la tabla (es un vecino)
-            destino = alcanzabilidad[x]                  #Para acceder a la lista de destinos asociados a la IP del vecino
-            paquete.append(len(destino))
-            #Para enviar el total de destinos alcanzables como valor hex
-            for y in destino:                            #Itera sobre cada destino para obtener sus datos
+            destino = alcanzabilidad[x]                                      #Para acceder a la lista de destinos asociados a la IP del vecino
+            paquete.append(len(destino))                                     #Para enviar el total de destinos alcanzables como valor hex
+            for y in destino:                                                #Itera sobre cada destino para obtener sus datos
                 datosDestino = destino[y]
-                ip_int = str(decode(datosDestino['IP'])).split(".")                #Para acceder a los datos del destino
-                for i in ip_int:
+                ip_int = str(decode(datosDestino['IP'])).split(".")          #Para acceder a los datos del destino
+                for i in ip_int:                                             #Almacena la IP del destino
                     paquete.append(int(i))
-                #Almacena la IP del destino
                 msk_int = str(decode(datosDestino['Mascara'])).split(".")
-                for i in msk_int:
+                for i in msk_int:                                            #Almacena la máscara del vecino
                     paquete.append(int(i))
-                #Almacena la máscara del vecino
-                sistemas = datosDestino['SAs']           #Para acceder a los sistmas asociados al vecino
-                paquete.append(len(sistemas))
-                #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
-                for z in sistemas:                       #Itera sobre cada sistema y obtiene su ID
+                sistemas = datosDestino['SAs']                               #Para acceder a los sistmas asociados al vecino
+                paquete.append(len(sistemas))                                #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
+                for z in sistemas:                                           #Itera sobre cada sistema y obtiene su ID
                     print("SISTEMA: " + str(sistemas[z]))
                     sa_int = str(decode(sistemas[z]))
-                    paquete.append(int(sa_int))
-                    #Almacena el ID del sistema
+                    paquete.append(int(sa_int))                              #Almacena el ID del sistema
         if len(paquete) != 1:
-            if paquete[5] != 0:        
-                #print("Paquete: "+paquete)                
+            if paquete[5] != 0:                        
                 respuesta = bytes(paquete)
-                #print("Respuesta: "+respuesta)
                 s.send(respuesta)
         s.close()
 
@@ -345,7 +321,6 @@ time.sleep(1)
 
 listener = threading.Thread(target=escucha, name = 'router')
 listener.start()
-#updater()
 update = threading.Timer(31.0, updater)
 update.start()
 os.system('clear')
