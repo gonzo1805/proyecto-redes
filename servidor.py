@@ -123,10 +123,6 @@ def escucha():
                 recibido += tipo+sa+ip+mascara
                 print(recibido)
                 #Se divide el paquete en sus respectivas partes
-                #tipo = recibido[0:2] #tipo de solicitud
-                #sa = recibido[2:6] #sistema autonomo
-                #ip = recibido[6:14]
-                #mascara = recibido[14:22]
                 if tipo == b"01":
                     print("se ingresó una solicitud de conexión")
                     if ip in vecinos:
@@ -148,15 +144,11 @@ def escucha():
                             lista.append(int(i))
                         for i in msk_int:
                             lista.append(int(i))
-                        #puerto = sc.getsockname()[1]
-                        #lista = lista + list(puerto.to_bytes(2, byteorder='big'))
                         respuesta = bytes(lista)
-                        #print(str(puerto))
                         print(respuesta)
                         sc.send(respuesta)
                         print("se envió respuesta de aceptación")
-                        #se ingresa en la tabla vecinos,
-                        #el tipo re refiere a si está conectado o no
+                        #se ingresa en la tabla vecinos, el tipo re refiere a si está conectado o no
                         vecinos[ip] = {'estado': tipo,'mascara': mascara,'sa': sa}
                         escribeArchivo("Se agregó el vecino: "+str(ip), "Vecinos.txt")
                         print("se agregó con éxito el vecino: ",ip)
@@ -253,7 +245,6 @@ def escucha():
 
 def updater():
     update = threading.Timer(31.0, updater).start()
-    print("UPDATER")
     for i in vecinos:
         direccionString = decode(i)
         soc = socket.socket()
@@ -281,8 +272,6 @@ def updater():
                 paquete.append(len(sistemas))                                #Para enviar el total de sistemas por los que se debe pasar para llegar a ldestino
                 numero = 0
                 for z in sistemas:                                           #Itera sobre cada sistema y obtiene su ID
-                    print("SISTEMA: " + str(sistemas[z]))
-                    print("REAL: " + str(decode(sistemas[z])))
                     sa_int = str(decode(sistemas[z]))
                     paquete.append(int(sa_int[0]))
                     paquete.append(int(sa_int[1]))                           #Almacena el ID del sistema
@@ -361,7 +350,6 @@ while True:
             sa_hex = "0"+sa_hex
         sa_hex = sa_hex.encode()
         print(sa_hex)
-        #se verifica que el
         if ip_hex not in vecinos:
             solicitud = b"01"
             solicitud += encode(SA_HOST)
@@ -433,7 +421,6 @@ while True:
         for i in alcanzabilidad:
             print(i)
     elif opcionMenu=="9":
-
         break
     else:
         print ("")
