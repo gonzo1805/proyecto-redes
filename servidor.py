@@ -164,6 +164,7 @@ def escucha():
                         vecino = vecinos[ip]
                         if vecino['mascara'] == mascara and vecino['sa'] == sa:
                             vecino['estado'] = b"00"
+                            del alcanzabilidad[ip]
                             escribeArchivo("Se desconectó el vecino: "+str(ip), "Vecinos.txt")
                             respuesta = b"04"
                             respuesta += encode(SA_HOST)
@@ -408,6 +409,7 @@ while True:
             if vecino['mascara'] == mask_hex and vecino['sa'] == sa_hex:
                 vecinos[ip_hex]['estado'] = b"00"
                 escribeArchivo("Se desconectó el vecino: "+str(ip_str), "Vecinos.txt")
+                del alcanzabilidad[ip_hex]
                 print("se desconectó el vecino", ip_str)
             else:
                 print("los demas datos sumistrados no corresponden a la ip "+str(ip_str))
@@ -418,8 +420,7 @@ while True:
         updater()
     elif opcionMenu == "4":
         print("Tabla alcanzabilidad:\n ")
-        for i in alcanzabilidad:
-            print(i)
+        print("Alcanzables: ", alcanzabilidad)
     elif opcionMenu=="9":
         break
     else:
